@@ -1,10 +1,10 @@
 // src/controllers/health.controller.js
 
-const healthService = require('../services/health.service')
+const healthService = require("../services/health.service")
 
-const check = async (req, res, next) => {
+const checkHealth = async (req, res, next) => {
   try {
-    const result = healthService.checkHealth()
+    const result = await healthService.checkHealth()
 
     res.status(200).json({
       success: true,
@@ -15,6 +15,27 @@ const check = async (req, res, next) => {
   }
 }
 
+const checkDatabase = async (req, res, next) => {
+  try {
+    const dbHealthy = await healthService.checkDatabase()
+
+    if (!dbHealthy) {
+      return res.status(500).json({
+        success: false,
+        message: "Database connection failed",
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Database is healthy",
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
-  check,
+  checkHealth,
+  checkDatabase,
 }
