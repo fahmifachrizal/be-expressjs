@@ -1,3 +1,5 @@
+// src/database/models/User.js
+
 module.exports = (sequelize, DataTypes) => {
   return sequelize.define(
     "User",
@@ -6,6 +8,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
+      },
+      username: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: false,
       },
       name: {
         type: DataTypes.STRING,
@@ -16,13 +23,14 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         allowNull: false,
       },
-      password_hash: {
+      password: {
         type: DataTypes.STRING,
         allowNull: false,
       },
       role: {
         type: DataTypes.ENUM("admin", "staff"),
         allowNull: false,
+        defaultValue: "staff",
       },
     },
     {
