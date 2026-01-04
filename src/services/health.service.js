@@ -1,4 +1,6 @@
+// src/services/health.service.js
 
+const db = require('../database/models')
 
 const checkHealth = () => {
   return {
@@ -10,9 +12,10 @@ const checkHealth = () => {
 
 const checkDatabase = async () => {
   try {
-    await db.query("SELECT 1")
+    await db.sequelize.authenticate()
     return true
   } catch (error) {
+    console.error('Database connection error:', error)
     return false
   }
 }

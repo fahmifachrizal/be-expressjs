@@ -1,5 +1,7 @@
+// src/database/models/User.js
+
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define(
+  return sequelize.define(
     "User",
     {
       id: {
@@ -7,21 +9,19 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      name: {
+      username: {
         type: DataTypes.STRING,
+        unique: true,
         allowNull: false,
       },
-      username: {
+      name: {
         type: DataTypes.STRING,
         allowNull: false,
       },
       email: {
         type: DataTypes.STRING,
-        allowNull: false,
         unique: true,
-        validate: {
-          isEmail: true,
-        },
+        allowNull: false,
       },
       password: {
         type: DataTypes.STRING,
@@ -39,5 +39,4 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: true,
     }
   )
-  return User
 }
