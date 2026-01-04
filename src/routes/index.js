@@ -1,8 +1,11 @@
-const express = require('express')
-const healthController = require('../controllers/health.controller')
+const express = require("express")
+
+const healthRoute = require("./health.routes")
+const authRoute = require("./auth.routes")
 
 const router = express.Router()
 
-router.get('/health', healthController.check)
+router.use("/health", healthRoute)
+router.use("/auth", authRoute)
 
 module.exports = router

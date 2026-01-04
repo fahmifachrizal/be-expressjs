@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define(
+  const User = sequelize.define(
     "User",
     {
       id: {
@@ -11,18 +11,26 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      email: {
+      username: {
         type: DataTypes.STRING,
-        unique: true,
         allowNull: false,
       },
-      password_hash: {
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
+      },
+      password: {
         type: DataTypes.STRING,
         allowNull: false,
       },
       role: {
         type: DataTypes.ENUM("admin", "staff"),
         allowNull: false,
+        defaultValue: "staff",
       },
     },
     {
@@ -31,4 +39,5 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: true,
     }
   )
+  return User
 }
