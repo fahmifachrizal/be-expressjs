@@ -1,42 +1,61 @@
 // src/utils/errors.js
 
 class AppError extends Error {
-  constructor(message, statusCode, errorCode) {
+  constructor(message, statusCode, errorCode, details = null) {
     super(message)
     this.statusCode = statusCode
     this.errorCode = errorCode
+    this.details = details
     this.isOperational = true
     Error.captureStackTrace(this, this.constructor)
   }
 }
 
 class AuthError extends AppError {
-  constructor(message, errorCode) {
-    super(message, 401, errorCode)
+  constructor(message, errorCode = 'AUTH-001', details = null) {
+    super(message, 401, errorCode, details)
+  }
+}
+
+class AuthorizationError extends AppError {
+  constructor(message, errorCode = 'AUTH-008', details = null) {
+    super(message, 403, errorCode, details)
   }
 }
 
 class ValidationError extends AppError {
-  constructor(message, errorCode = 'VAL-001') {
-    super(message, 400, errorCode)
+  constructor(message, errorCode = 'VAL-001', details = null) {
+    super(message, 400, errorCode, details)
   }
 }
 
 class NotFoundError extends AppError {
-  constructor(message, errorCode = 'NOT-001') {
-    super(message, 404, errorCode)
+  constructor(message, errorCode = 'NOT-001', details = null) {
+    super(message, 404, errorCode, details)
+  }
+}
+
+class BusinessError extends AppError {
+  constructor(message, errorCode = 'BUS-001', details = null) {
+    super(message, 422, errorCode, details)
   }
 }
 
 class DatabaseError extends AppError {
-  constructor(message, errorCode = 'DB-001') {
-    super(message, 500, errorCode)
+  constructor(message, errorCode = 'DB-001', details = null) {
+    super(message, 500, errorCode, details)
   }
 }
 
 class ConflictError extends AppError {
-  constructor(message, errorCode = 'CONF-001') {
-    super(message, 409, errorCode)
+  constructor(message, errorCode = 'CONF-001', details = null) {
+    super(message, 409, errorCode, details)
+  }
+}
+
+class SystemError extends AppError {
+  constructor(message, errorCode = 'SYS-001', details = null) {
+    super(message, 500, errorCode, details)
   }
 }
 
@@ -54,9 +73,12 @@ const AuthErrors = {
 module.exports = {
   AppError,
   AuthError,
+  AuthorizationError,
   ValidationError,
   NotFoundError,
+  BusinessError,
   DatabaseError,
   ConflictError,
+  SystemError,
   AuthErrors,
 }

@@ -1,68 +1,76 @@
 // src/middlewares/error.middleware.js
 
-const { AppError } = require("../utils/errors")
+const {
+  AppError,
+  ValidationError,
+  ConflictError,
+  DatabaseError,
+  SystemError,
+} = require("../utils/errors")
 
 const errorHandler = (err, req, res, next) => {
-  // Log error for debugging
-  console.error("Error:", {
-    message: err.message,
-    stack: err.stack,
-    errorCode: err.errorCode,
-  })
+  let error = err
 
-  // Handle operational errors (known errors)
-  if (err.isOperational) {
-    return res.status(err.statusCode).json({
-      success: false,
-      message: err.message,
-      errorCode: err.errorCode,
-    })
-  }
-
-  // Handle Sequelize validation errors
-  if (err.name === "SequelizeValidationError") {
-    return res.status(400).json({
-      success: false,
-      message: "Validation error",
-      errorCode: "VAL-001",
-      errors: err.errors.map((e) => ({
+  // Normalize error to AppError
+  if (!(error instanceof AppError)) {
+    if (error.name === "SequelizeValidationError") {
+      const details = error.errors.map((e) => ({
         field: e.path,
         message: e.message,
-      })),
-    })
-  }
-
-  // Handle Sequelize unique constraint errors
-  if (err.name === "SequelizeUniqueConstraintError") {
-    return res.status(409).json({
-      success: false,
-      message: "Resource already exists",
-      errorCode: "CONF-001",
-      errors: err.errors.map((e) => ({
+      }))
+      error = new ValidationError("Validation error", "VAL-001", details)
+    } else if (error.name === "SequelizeUniqueConstraintError") {
+      const details = error.errors.map((e) => ({
         field: e.path,
         message: e.message,
-      })),
-    })
+      }))
+      error = new ConflictError("Resource already exists", "CONF-001", details)
+    } else if (error.name && error.name.startsWith("Sequelize")) {
+      error = new DatabaseError("Database error occurred")
+    } else {
+      // Unexpected errors
+      const message =
+        process.env.NODE_ENV === "production"
+          ? "Internal server error"
+          : error.message
+      error = new SystemError(message)
+      error.stack = err.stack // Preserve original stack
+    }
   }
 
-  // Handle Sequelize database errors
-  if (err.name && err.name.startsWith("Sequelize")) {
-    return res.status(500).json({
-      success: false,
-      message: "Database error occurred",
-      errorCode: "DB-001",
-    })
+  // Logging Strategy
+  const logContext = {
+    code: error.errorCode,
+    message: error.message,
+    path: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    requestId: req.headers["x-request-id"],
+    userId: req.user?.id,
   }
 
-  // Handle unexpected errors (programming errors, unknown errors)
-  return res.status(500).json({
+  if (error.statusCode >= 500) {
+    console.error("System Error:", { ...logContext, stack: error.stack })
+  } else if (error.statusCode >= 400) {
+    console.warn("Client Error:", logContext)
+  } else {
+    console.info("Error:", logContext)
+  }
+
+  // Standard Response
+  const response = {
     success: false,
-    message:
-      process.env.NODE_ENV === "production"
-        ? "Internal server error"
-        : err.message,
-    errorCode: "SYS-001",
-  })
+    error: {
+      code: error.errorCode,
+      message: error.message,
+    },
+  }
+
+  if (error.details) {
+    response.error.details = error.details
+  }
+
+  return res.status(error.statusCode).json(response)
 }
 
 module.exports = errorHandler
